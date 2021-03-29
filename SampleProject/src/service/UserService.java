@@ -1,12 +1,14 @@
 package service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dao.UserDao;
 import util.ScanUtil;
+import util.View;
 
 public class UserService {	//	Service : 화면 기능
 	
@@ -43,7 +45,7 @@ public class UserService {	//	Service : 화면 기능
 	//모든 클래스들이 동일한 인스턴스를 써야 할 경우
 	//
 	
-	public static int join() {
+	public int join(){
 		System.out.println("================회원 가입================");
 		
 		Map<String ,Object> param = new HashMap<>();		
@@ -51,35 +53,52 @@ public class UserService {	//	Service : 화면 기능
 		System.out.print("아이디>");
 		String userId = ScanUtil.nextLine();
 		//유효성 검사
-		String idCheck = "[0-9a-z_-]{5-20}";
+		String idCheck = "[0-9a-z_-]{5,20}";
 		Pattern p = Pattern.compile(idCheck);
 		Matcher m = p.matcher(userId);
 		
 		if(m.matches()==true) {
-			param.put("USER_ID",userId);
-		}else{
-			System.out.println("아이디는 5자 이상 20자 이하 영문 소문자,숫자, 특수기호_-만 사용 가능합니다");
-		}
+			
+			
+			Map<String ,String> an = new HashMap<>();
+				
+				an.put("USER_ID" , userId);
+			
+				boolean value;
+				
+					value = userDao.CheckId(an);
+					if(value == true) {
+						System.out.println("이미 존재하는 아이디입니다");
+								return View.HOME; 
+					}else {
+						param.put("USER_ID",userId);
+					}
+				}else{
+						System.out.println("아이디는 5자 이상 20자 이하 영문 소문자,숫자, 특수기호_-만 사용 가능합니다");
+								return View.HOME; 
+				}
 		//일단 여기선 DB로 연결해서 중복확인은 UserDao
 		
-		System.out.print("비밀번호 1 >");
+		System.out.print("비밀번호 >");
 		String userPs1 =ScanUtil.nextLine();
-		System.out.print("비밀번호 2>");
+		System.out.print("비밀번호를 다시 입력하세요>");
 		String userPs2 =ScanUtil.nextLine();
 		
 		if(userPs1.equals(userPs2)) {
 			param.put("USER_PASSWORD",userPs1);
 		}else {
 			System.out.println("비밀번호가 일치하지 않습니다");
+			return View.HOME; 
 		}
 		
-		System.out.println("이름>");
+		System.out.print("이름>");
 		String userNM = ScanUtil.nextLine();
 		param.put("USER_NM", userNM);
 		
-		System.out.println("휴대폰 번호>");
+		System.out.println("휴대폰 번호는 -를 제외하고 입력하세요");
+		System.out.print("휴대폰 번호>");
 		String userHp = ScanUtil.nextLine();
-		String hpCheck = "^\\d{3}[-]\\d{3,4}[-]\\d{4}$";
+		String hpCheck = "^\\d{3}\\d{3,4}\\d{4}$";
 		Pattern p1 = Pattern.compile(hpCheck);
 		Matcher m1 = p1.matcher(userHp);
 		
@@ -90,18 +109,35 @@ public class UserService {	//	Service : 화면 기능
 		}
 		
 		
-		System.out.println("집주소>");
+		System.out.print("집주소>");
 		String userAd =ScanUtil.nextLine();
 		param.put("USER_ADRES",userAd);
 		
-		Map<String ,Object> MNGR = UserDao.selectAdmin();
-		param.put("MNGR_ID", userAd);
-//		
-		int result = UserDao.insertUser(param);//여기서 왜 int로 결과가 나ㅗ는지...
+	
+		String adminId = "admin";
+		
+		param.put("MNGR_ID",adminId);
+		
+		
+		int result = userDao.insertUser(param);//여기서 왜 int로 결과가 나ㅗ는지...
+		
+		if(0<result) {
+			System.out.println("회원가입 성공");
+		}else {
+			System.out.println("회원가입 실패");
+			
+		}
+		
+		return View.HOME;
 		
 		
 		
 		
+	}
+
+	public  int login() {//static 이면 변화 생겨도 변화 안됨 
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 
